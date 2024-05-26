@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <%- include('includes/head') %>
+    <title>Enviar Correos Gmail</title>
+</head>
+
+<body>
+  <main class="content-wrapper mt-5">
+    <div class="container" style="width: 95% !important">
+      <div class="row justify-content-md-center mb-5">
+        <div class="col-md-12">
+          <h2 class="text-center">Enviar Correos Gmail</h2>
+          <hr />
+        </div>
+
+        <div class="col-md-6 text-center cardForm">
+          <form id="emailForm" enctype="multipart/form-data">
+            <!-- Sección inicial con servicio, usuario y password -->
+            <div id="section1">
+              <div class="form-group mb-3">
+               <!--  <label for="servicio">Servicio:</label> -->
+                <input type="hidden" id="servicio" name="servicio" class="form-control" required />
+              </div>
+              <div class="form-group mb-3">
+                <label for="usuario">Usuario:</label>
+                <input type="text" id="usuario" name="usuario" class="form-control" required />
+              </div>
+              <div class="form-group mb-3">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" class="form-control" required />
+              </div>
+              <button type="button" class="btn btn-primary" onclick="validarYMostrarSiguiente()">Siguiente</button>
+            </div>
+
+            <!-- Sección oculta inicialmente -->
+            <div id="section2" style="display:none">
+              <div class="form-group mb-3">
+                <!-- <label for="desde">Desde:</label> -->
+                <input type="hidden" name="desde" class="form-control" />
+              </div>
+              <div class="form-group mb-3">
+                <label for="para">Correo Destino</label>
+                <input type="email" name="para" class="form-control" />
+              </div>
+              <div class="form-group mb-3">
+                <label for="titulo">Titulo</label>
+                <input type="text" name="titulo" class="form-control" />
+              </div>
+              <div class="form-group mb-3">
+                <label for="mensaje">Mensaje</label>
+                <textarea name="mensaje" class="form-control" rows="3"></textarea>
+              </div>
+              <div class="form-group mb-4">
+                <label for="fileAdjunto">Adjuntar Archivo</label>
+                <br>
+                <input type="file" name="fileAdjunto" class="form-control-file" id="fileAdjunto" />
+              </div>
+              <div class="form-group mb-4">
+                <img id="preview" src="" alt="Vista previa de la imagen"
+                  style="display: none; max-width: 100%; height: auto;" />
+              </div>
+              <hr />
+              <button type="submit" class="btn btn-info btn-lg btn-block">Enviar correo</button>
+              <a href="/" class="btn btn-secondary btn-lg btn-block"
+                onclick="mostrarAnterior()">Volver</a>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function validarYMostrarSiguiente() {
+      var servicio = document.getElementById('servicio').value.trim();
+      var usuario = document.getElementById('usuario').value.trim();
+      var password = document.getElementById('password').value.trim();
+
+      if (usuario === "" || password === "") {
+        alert("Por favor, rellene todos los campos requeridos.");
+      } else {
+        // Almacenar los datos en localStorage
+        localStorage.setItem('servicio', servicio);
+        localStorage.setItem('usuario', usuario);
+        localStorage.setItem('password', password);
+
+        // Ocultar sección 1 y mostrar sección 2
+        document.getElementById('section1').style.display = 'none';
+        document.getElementById('section2').style.display = 'block';
+      }
+    }
+
+    document.getElementById('emailForm').addEventListener('submit', function (event) {
+      event.preventDefault(); // Evitar el envío tradicional del formulario
+
+      const formData = new FormData(this);
+      fetch("/procesar-email", {
+        method: "POST",
+        body: formData
+      }).then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            alert(data.message); // Mostrar mensaje de éxito
+          } else {
+            alert(data.message); // Mostrar mensaje de error
+          }
+        })
+        .catch(error => {
+          alert("Error al enviar el formulario: " + error);
+        });
+    });
+
+    document.getElementById('fileAdjunto').addEventListener('change', function (event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          const img = document.getElementById('preview');
+          img.src = e.target.result;
+          img.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  </script>
+</body>
+
+</html>
